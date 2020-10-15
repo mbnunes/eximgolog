@@ -45,13 +45,27 @@ func FindLogLine(mailid string) {
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	//	err = client.Connect(ctx)
+	err = client.Connect(ctx)
 
 	collection := client.Database("eximgolog").Collection("logs")
-	err = collection.FindOne(ctx, bson.D{"mailid": 25})
+	cur, err := collection.Find(ctx, bson.M{"mailid": mailid})
 
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	defer cur.Close(ctx)
+
+	for cur.Next(ctx) {
+		// To decode into a struct, use cursor.Decode()
+		fmt.Println(cur)
+		var result LogLine
+		err := cur.Decode(&result)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(result)
 	}
 
 	defer client.Disconnect(ctx)
