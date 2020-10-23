@@ -25,7 +25,8 @@ func ReadMainlogHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexGetHandler(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "index.html", nil)
+	tipo := []string{"Enviado", "Recebido", "Redirecionado", "EntregaFailed", "EntregaAdiada", "EntregaSuprimida", "Roteada", "EmailForwarder", "Desconhecido"}
+	templates.ExecuteTemplate(w, "index.html", tipo)
 }
 
 func indexPostHandler(w http.ResponseWriter, r *http.Request) {
