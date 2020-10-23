@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Exim GoLog - {{ . }}</title>
+    </head>
+    <body>
+        <h1>{{ . }}</h1>
+        <div id="buscaMail">
+            <form method="POST">
+                <input type="date" name="data"/>
+                <input type="time" name="horario"/>
+                <input type="text" name="mailid"/>                
+                <select name="tipo" id="tipo">
+                    {{ range . }}
+                        <option>{{ . }}</option>
+                    {{ end }}
+                </select>
+                <button type="submit">Buscar</button>
+            </form>
+        </div>
+    </body>
+</html>
