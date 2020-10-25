@@ -12,6 +12,11 @@ import (
 
 var templates *template.Template
 
+type IndexData struct {
+	PageTitle string
+	Tipos     []string
+}
+
 func ReadMainlogHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	w.WriteHeader(http.StatusOK)
@@ -25,18 +30,24 @@ func ReadMainlogHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexGetHandler(w http.ResponseWriter, r *http.Request) {
-	tipo := []string{"Enviado", "Recebido", "Redirecionado", "EntregaFailed", "EntregaAdiada", "EntregaSuprimida", "Roteada", "EmailForwarder", "Desconhecido"}
-	templates.ExecuteTemplate(w, "index.html", tipo)
+	dados := IndexData{
+		PageTitle: "Bem-Vindo",
+		Tipos:     []string{"Enviado", "Recebido", "Redirecionado", "EntregaFailed", "EntregaAdiada", "EntregaSuprimida", "Roteada", "EmailForwarder", "Desconhecido"},
+	}
+
+	templates.ExecuteTemplate(w, "index.html", dados)
 }
 
 func indexPostHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	/*
-		data := r.PostForm.Get("data")
-		horario := r.PostForm.Get("horario")
-		mailid := r.PostForm.Get("mailid")
-		tipo := r.PostForm.Get("tipo")
-	**/
+	dadosForm := eximgolog.FindForm{
+		Data:    r.PostForm.Get("data"),
+		Horario: r.PostForm.Get("horario"),
+		Mailid:  r.PostForm.Get("mailid"),
+		Tipo:    r.PostForm.Get("tipo"),
+	}
+
+	eximgolog.FindLogLine(dadosForm)
 	http.Redirect(w, r, "/", 302)
 }
 

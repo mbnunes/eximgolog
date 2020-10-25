@@ -25,3 +25,10 @@ const (
 	EmailForwarder   EnumType = "->"
 	Desconhecido     EnumType = "Informação desconhecida."
 )
+
+type FindForm struct {
+	Data    string
+	Horario string
+	Mailid  string
+	Tipo    string
+}

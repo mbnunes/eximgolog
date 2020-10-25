@@ -36,7 +36,7 @@ func InsertLogLine(logline LogLine) {
 }
 
 // FindLogLine - Procura o e-mail deacordo com o seu mailid
-func FindLogLine(mailid string) {
+func FindLogLine(dados FindForm) {
 
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 
@@ -48,7 +48,7 @@ func FindLogLine(mailid string) {
 	err = client.Connect(ctx)
 
 	collection := client.Database("eximgolog").Collection("logs")
-	cur, err := collection.Find(ctx, bson.M{"mailid": mailid})
+	cur, err := collection.Find(ctx, bson.M{"data": dados.Data, "horario": dados.Horario, "mailid": dados.Mailid, "tipo": dados.Tipo})
 
 	if err != nil {
 		log.Fatal(err)

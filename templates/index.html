@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Exim GoLog</title>
+        <title>Exim GoLog - {{.PageTitle}}</title>
     </head>
     <body>
         <h4>Pesquisa</h4>
@@ -11,7 +11,7 @@
                 <input type="time" name="horario"/>
                 <input type="text" name="mailid"/>                
                 <select name="tipo" id="tipo">
-                    {{ range . }}
+                    {{ range .Tipos }}
                         <option>{{ . }}</option>
                     {{ end }}
                 </select>
