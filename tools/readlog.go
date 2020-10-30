@@ -1,4 +1,4 @@
-package eximgolog
+package tools
 
 import (
 	"bufio"

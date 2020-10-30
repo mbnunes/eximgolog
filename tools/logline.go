@@ -1,4 +1,4 @@
-package eximgolog
+package tools
 
 // LogLine - estrutura dos dados de cada linha encontrada no mainlog
 type LogLine struct {

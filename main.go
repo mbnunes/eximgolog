@@ -1,7 +1,7 @@
 package main
 
 import (
-	eximgolog "eximgolog/tools"
+	"eximgolog/tools"
 	"fmt"
 	"html/template"
 	"log"
@@ -11,10 +11,12 @@ import (
 )
 
 var templates *template.Template
+var mongodb tools.MongoDB
 
 type IndexData struct {
 	PageTitle string
 	Tipos     []string
+	Result    []tools.LogLine
 }
 
 func ReadMainlogHandler(w http.ResponseWriter, r *http.Request) {
@@ -22,32 +24,30 @@ func ReadMainlogHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	//var mylog eximgolog.LogLine
 	//eximgolog.InsertLogLine(mylog)
-	teste := eximgolog.ReadLog("mainlog")
+	teste := tools.ReadLog("mainlog")
+	mongodb.ConnectMongoDb()
 	for _, t := range teste {
-		eximgolog.InsertLogLine(t)
+		mongodb.InsertLogLine(t)
 	}
+	mongodb.CloseConnection()
 	fmt.Fprintf(w, "Category: %v\n", vars["category"])
 }
 
 func indexGetHandler(w http.ResponseWriter, r *http.Request) {
-	dados := IndexData{
-		PageTitle: "Bem-Vindo",
-		Tipos:     []string{"Enviado", "Recebido", "Redirecionado", "EntregaFailed", "EntregaAdiada", "EntregaSuprimida", "Roteada", "EmailForwarder", "Desconhecido"},
-	}
-
-	templates.ExecuteTemplate(w, "index.html", dados)
+	templates.ExecuteTemplate(w, "index.html", retornaIndexHandler("", nil))
 }
 
 func indexPostHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	dadosForm := eximgolog.FindForm{
+	dadosForm := tools.FindForm{
 		Data:    r.PostForm.Get("data"),
 		Horario: r.PostForm.Get("horario"),
 		Mailid:  r.PostForm.Get("mailid"),
 		Tipo:    r.PostForm.Get("tipo"),
 	}
-
-	eximgolog.FindLogLine(dadosForm)
+	mongodb.ConnectMongoDb()
+	mongodb.FindLogLine(dadosForm)
+	mongodb.CloseConnection()
 	http.Redirect(w, r, "/", 302)
 }
 
@@ -61,4 +61,20 @@ func main() {
 	r.HandleFunc("/readmainlog", ReadMainlogHandler).Methods("GET")
 
 	log.Fatal(http.ListenAndServe("localhost:8080", r))
+}
+
+func retornaIndexHandler(title string, result []tools.LogLine) IndexData {
+	if title == "" {
+		title = "Bem-Vindo"
+	}
+
+	tipos := []string{"Enviado", "Recebido", "Redirecionado", "EntregaFailed", "EntregaAdiada", "EntregaSuprimida", "Roteada", "EmailForwarder", "Desconhecido"}
+
+	dados := IndexData{
+		PageTitle: title,
+		Tipos:     tipos,
+		Result:    nil,
+	}
+
+	return dados
 }

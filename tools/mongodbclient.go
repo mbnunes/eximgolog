@@ -1,4 +1,4 @@
-package eximgolog
+package tools
 
 import (
 	context "context"
@@ -11,20 +11,34 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// InsertLogLine - insere o struct LogLine no mongodb
-func InsertLogLine(logline LogLine) {
+type MongoDB struct {
+	con  *mongo.Client
+	err  error
+	ctx  context.Context
+	coll *mongo.Collection
+}
 
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
+// ConnectMongoDb - é uma função que gera a conexão com o Mongo sempre que chamada.
+func (c *MongoDB) ConnectMongoDb() {
+	c.con, c.err = mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
 
-	if err != nil {
-		log.Fatal(err)
+	if c.err != nil {
+		log.Fatal(c.err)
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err = client.Connect(ctx)
+	c.ctx, _ = context.WithTimeout(context.Background(), 10*time.Second)
+	c.err = c.con.Connect(c.ctx)
+	c.coll = c.con.Database("eximgolog").Collection("logs")
+}
 
-	collection := client.Database("eximgolog").Collection("logs")
-	insertResult, err := collection.InsertOne(ctx, logline)
+func (c *MongoDB) CloseConnection() {
+	c.con.Disconnect(c.ctx)
+}
+
+// InsertLogLine - insere o struct LogLine no mongodb
+func (c *MongoDB) InsertLogLine(logline LogLine) {
+
+	insertResult, err := c.coll.InsertOne(c.ctx, logline)
 
 	if err != nil {
 		log.Fatal(err)
@@ -32,31 +46,20 @@ func InsertLogLine(logline LogLine) {
 
 	fmt.Println("Inserted post with ID:", insertResult.InsertedID)
 
-	defer client.Disconnect(ctx)
 }
 
 // FindLogLine - Procura o e-mail deacordo com o seu mailid
-func FindLogLine(dados FindForm) {
+func (c *MongoDB) FindLogLine(dados FindForm) {
 
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err = client.Connect(ctx)
-
-	collection := client.Database("eximgolog").Collection("logs")
-	cur, err := collection.Find(ctx, bson.M{"data": dados.Data, "horario": dados.Horario, "mailid": dados.Mailid, "tipo": dados.Tipo})
+	cur, err := c.coll.Find(c.ctx, bson.M{"mailid": dados.Mailid})
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer cur.Close(ctx)
+	defer cur.Close(c.ctx)
 
-	for cur.Next(ctx) {
+	for cur.Next(c.ctx) {
 		// To decode into a struct, use cursor.Decode()
 		var result LogLine
 		err := cur.Decode(&result)
@@ -67,5 +70,4 @@ func FindLogLine(dados FindForm) {
 		fmt.Printf("%+v\n", result)
 	}
 
-	defer client.Disconnect(ctx)
 }
