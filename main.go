@@ -22,10 +22,7 @@ type IndexData struct {
 func ReadMainlogHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	w.WriteHeader(http.StatusOK)
-	//var mylog eximgolog.LogLine
-	//eximgolog.InsertLogLine(mylog)
 	teste := tools.ReadLog("mainlog")
-	mongodb.ConnectMongoDb()
 	for _, t := range teste {
 		mongodb.InsertLogLine(t)
 	}
@@ -68,7 +65,7 @@ func retornaIndexHandler(title string, result []tools.LogLine) IndexData {
 		title = "Bem-Vindo"
 	}
 
-	tipos := []string{"Enviado", "Recebido", "Redirecionado", "EntregaFailed", "EntregaAdiada", "EntregaSuprimida", "Roteada", "EmailForwarder", "Desconhecido"}
+	tipos := []string{"Enviado", "Recebido", "Redirecionado", "EntregaFailed", "EntregaAdiada", "EntregaSuprimida", "Roteada", "EmailForwarder", "Outro"}
 
 	dados := IndexData{
 		PageTitle: title,

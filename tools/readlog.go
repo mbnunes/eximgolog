@@ -10,7 +10,7 @@ import (
 
 // ReadLog - Funcao que le o arquivo que foi dado como argumento e retorna um slice de cada linha lida
 func ReadLog(fileName string) []LogLine {
-	var partner = regexp.MustCompile(`(?m)([0-9-]+) ([0-9:]+) ([-0-9a-zA-Z]+) ([<*>=]+) (([<=*>]+)|([a-zA-Z <@>.]+)) (R=([-0-9a-zA-Z]+))?`)
+	var partner = regexp.MustCompile(`(?m)(([0-9-]+) ([0-9:]+) ([-0-9a-zA-Z]{10,})) ([<*\-=>]+|[a-z.]+) ([<>=]+|[\[\]0-9.]+|[a-z0-9@.A-Z\:]+|[0-9a-zA-Z@. <>]+) (R=[0-9a-zA-Z-]+|[a-zA-Z ]+|U=[a-zA-Z0-9]+|H=[\(\[a-zA-Z0-9.\]\)]+) (.*)`)
 
 	file, err := os.Open(fileName)
 
@@ -57,7 +57,7 @@ func ReadLog(fileName string) []LogLine {
 				linha.Mailid = strings.Split(match, " ")[2]
 
 				linha.Tipo = "Redirecionado"
-				linha.Redirectid = strings.Split(strings.Split(match, " ")[5], "R=")[1]
+				linha.Redirectid = strings.Split(match, " ")[5]
 				loglineList = append(loglineList, linha)
 			} else if msg == EntregaFailed {
 				linha := LogLine{}
@@ -66,6 +66,28 @@ func ReadLog(fileName string) []LogLine {
 				linha.Mailid = strings.Split(match, " ")[2]
 				linha.Tipo = "EntregaFailed"
 				linha.ErroMsg = strings.Split(match, " ")[4]
+				loglineList = append(loglineList, linha)
+			} else if msg == EntregaAdiada {
+				linha := LogLine{}
+				linha.Data = strings.Split(match, " ")[0]
+				linha.Horario = strings.Split(match, " ")[1]
+				linha.Mailid = strings.Split(match, " ")[2]
+				linha.Tipo = "EntregaAdiada"
+				linha.ErroMsg = strings.Split(match, " ")[6]
+				loglineList = append(loglineList, linha)
+			} else {
+				msgError := ""
+				linha := LogLine{}
+				linha.Data = strings.Split(match, " ")[0]
+				linha.Horario = strings.Split(match, " ")[1]
+				linha.Mailid = strings.Split(match, " ")[2]
+				linha.Tipo = "Outro"
+				for i := range strings.Split(match, " ") {
+					if i > 2 {
+						msgError += strings.Split(match, " ")[i] + " "
+					}
+				}
+				linha.ErroMsg = msgError
 				loglineList = append(loglineList, linha)
 			}
 		}

@@ -2,7 +2,6 @@ package tools
 
 import (
 	context "context"
-	"fmt"
 	"log"
 	"time"
 
@@ -38,13 +37,11 @@ func (c *MongoDB) CloseConnection() {
 // InsertLogLine - insere o struct LogLine no mongodb
 func (c *MongoDB) InsertLogLine(logline LogLine) {
 
-	insertResult, err := c.coll.InsertOne(c.ctx, logline)
+	_, err := c.coll.InsertOne(c.ctx, logline)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("Inserted post with ID:", insertResult.InsertedID)
 
 }
 
@@ -58,16 +55,17 @@ func (c *MongoDB) FindLogLine(dados FindForm) {
 	}
 
 	defer cur.Close(c.ctx)
+	var teste []LogLine
 
 	for cur.Next(c.ctx) {
 		// To decode into a struct, use cursor.Decode()
 		var result LogLine
+
 		err := cur.Decode(&result)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		fmt.Printf("%+v\n", result)
+		teste = append(teste, result)
 	}
 
 }
